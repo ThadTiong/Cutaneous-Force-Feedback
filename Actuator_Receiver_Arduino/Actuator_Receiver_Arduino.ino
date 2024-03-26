@@ -68,8 +68,8 @@ void recvWithStartEndMarkers() {
   char endMarker = '>';
   char rc;
 
-  while (Serial1.available() > 0 && newData == false) {
-    rc = Serial1.read();
+  while (Serial.available() > 0 && newData == false) {
+    rc = Serial.read();
     Serial.print(rc);
 
     if (recvInProgress == true) {

@@ -51,6 +51,8 @@ game2_origin = (game1_origin[0] + GRID_SIZE * (SQUARE_SIZE + MARGIN) + MARGIN, M
 
 # Define the draw functions for both games...
 
+previous_string = ""
+
 
 def update_boolean_array(data_list, boolean_array, vibration_start_times, current_time):
     max_value = max(data_list)
@@ -75,7 +77,7 @@ def update_boolean_array(data_list, boolean_array, vibration_start_times, curren
             boolean_array[i] = 1
 
 
-def print_string(boolean_array):
+def print_string(boolean_array, previous_string):
     first = 0
     second = 0
 
@@ -89,10 +91,16 @@ def print_string(boolean_array):
             if boolean_array[i]:
                 second += values[i]
     full_string = f"<{first:03}{second:03}>"
-    # Write full_string to output serial port
-    outputser.write(
-        full_string.encode("utf-8")
-    )  # Ensure to encode the string before sending
+
+    # if full_string same as previous string:
+    if full_string != previous_string:
+
+        # Write full_string to output serial port
+        print(full_string)
+        outputser.write(
+            full_string.encode("utf-8")
+        )  # Ensure to encode the string before sending
+        previous_string = full_string
 
 
 def draw_grid1(screen, array):
@@ -160,7 +168,7 @@ try:
         # change_array(boolean_array, data_list[max_index], max_index)
 
         draw_grid2(screen, data_list)
-        print_string(boolean_array)
+        print_string(boolean_array, previous_string)
 
         draw_grid1(screen, boolean_array)
         pygame.display.flip()
