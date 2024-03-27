@@ -87,7 +87,7 @@ void sendData() {
   }
   String cell_0_padded = zeroPad(cell_0, 3);
   String cell_1_padded = zeroPad(cell_1, 3);
-  String msg = "<" + cell_0_padded + cell_1_padded + "0" + ">";
+  String msg = "<" + cell_0_padded + cell_1_padded + ">";
 
   if (!msg.equals(previousMsg)) {
     Serial1.println(msg);
