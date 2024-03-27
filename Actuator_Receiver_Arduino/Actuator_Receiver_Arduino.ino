@@ -1,6 +1,6 @@
 
-String readString, d0, d1, tempString;
-int c0, c1, tempInt;
+String readString, d0, d1;
+int c0, c1;
 bool newData = false;
 const byte numChars = 9;
 char receivedChars[numChars];
@@ -19,9 +19,6 @@ const int STROBE = 4;
 const int CLOCK = 5;
 
 const int DATA_1 = 6;
-const int TEMPH = 7;
-const int TEMPC = 8;
-
 
 void setup() {
   pinMode(ON, OUTPUT);
@@ -29,8 +26,6 @@ void setup() {
   pinMode(CLOCK, OUTPUT);
   
   pinMode(DATA_1, OUTPUT);
-  pinMode(TEMPH, OUTPUT);
-  pinMode(TEMPC, OUTPUT);
 
   digitalWrite(ON, LOW);
 
@@ -43,11 +38,10 @@ void loop() {
   if (newData == true) {
     strcpy(tempChars, receivedChars);
 
-    if (strlen(tempChars) == 7) {
+    if (strlen(tempChars) == 6) {
       strncpy(messageFromPC, tempChars, 7);
-      messageFromPC[7] = '\0';
+      messageFromPC[6] = '\0';
 
-      Serial.println(messageFromPC);
       readString = messageFromPC;
       d0 = readString.substring(0, 3);
       d1 = readString.substring(3, 6);
@@ -57,9 +51,6 @@ void loop() {
 
       cells[0] = c0;
       cells[1] = c1;
-
-      tempString = readString.substring(6, 7);
-      tempInt = tempString.toInt();
 
       Flush();
       delay(interval);
@@ -77,8 +68,9 @@ void recvWithStartEndMarkers() {
   char endMarker = '>';
   char rc;
 
-  while (Serial1.available() > 0 && newData == false) {
-    rc = Serial1.read();
+  while (Serial.available() > 0 && newData == false) {
+    rc = Serial.read();
+    Serial.print(rc);
 
     if (recvInProgress == true) {
       if (rc != endMarker) {
@@ -101,18 +93,8 @@ void recvWithStartEndMarkers() {
 }
 
 void Flush() {
-  if (tempInt == 1) {
-    digitalWrite(TEMPH, HIGH);
-  }else if (tempInt == 2) {
-    digitalWrite(TEMPC, HIGH);
-  } else {
-    digitalWrite(TEMPH, LOW);
-    digitalWrite(TEMPC, LOW);
-  }
-
   const int bitOrder[8] = {6, 7, 2, 1, 0, 5, 4, 3};
   for (int i = 0; i < 2; i++){
-
     for (int j = 0; j < 8; j++) {
       digitalWrite(DATA_1, bitRead(cells[i], bitOrder[j]) ? LOW : HIGH);
       digitalWrite(CLOCK, HIGH);
@@ -121,8 +103,5 @@ void Flush() {
   }
   digitalWrite(STROBE, HIGH);
   digitalWrite(STROBE, LOW);
-
-  
-
 }
 

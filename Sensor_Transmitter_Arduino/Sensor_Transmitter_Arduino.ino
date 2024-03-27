@@ -2,10 +2,10 @@
 const int numRows = 4;
 const int numCols = 4;
 const int colPins[numRows] = { A0, A1, A2, A3 };
-const int rowPins[numCols] = { A7, A6, A5, A4 };
+const int rowPins[numCols] = { A4, A5, A6, A7  };
 
 int readings[numRows][numCols];
-int thresholds[] = {50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150};
+int thresholds[] = {50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180};
 int currentThresholdIndex = 0;
 
 int threshold;
@@ -95,7 +95,7 @@ void sendData() {
   }
   String cell_0_padded = zeroPad(cell_0, 3);
   String cell_1_padded = zeroPad(cell_1, 3);
-  String msg = "<" + cell_0_padded + cell_1_padded + "0" + ">";
+  String msg = "<" + cell_0_padded + cell_1_padded + ">";
 
   if (!msg.equals(previousMsg)) {
     Serial1.println(msg);
