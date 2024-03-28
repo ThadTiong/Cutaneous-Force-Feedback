@@ -12,15 +12,14 @@ SQUARE_SIZE = 100
 MARGIN = 50
 WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 600
-
 game1_width = GRID_SIZE * (SQUARE_SIZE + MARGIN) + MARGIN * 2
-game2_width = WINDOW_HEIGHT  # Use available window height
+game2_width = WINDOW_HEIGHT
 WINDOW_WIDTH = game1_width + game2_width + MARGIN
-
-# Ensure minimum height (if needed)
+game1_origin = (MARGIN, MARGIN)
+game2_origin = (game1_origin[0] + GRID_SIZE * (SQUARE_SIZE + MARGIN) + MARGIN, MARGIN)
 WINDOW_HEIGHT = max(WINDOW_HEIGHT, game1_width)
-
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -28,30 +27,20 @@ GRAY = (200, 200, 200)
 
 # Serial Setup
 serial_port = "/dev/tty.usbmodem21201"
-# serial_output_port = (
-#     "/dev/tty.usbmodem21401"  # Ensure this is the correct path for the output device
-# )
+# serial_output_port = "/dev/tty.usbmodem21401"
 baud_rate = 115200
 ser = serial.Serial(serial_port, baud_rate)
-# outputser = serial.Serial(
-#     serial_output_port, baud_rate
-# )  # Output serial port initialization
+# outputser = serial.Serial(serial_output_port, baud_rate)
 
 # Initial Data
 boolean_array = [0] * 16
 data_list = [0] * (GRID_SIZE**2)
 vibration_start_times = [time.time()] * 16  # Initialize start times for vibration
-vibration_interval = 1  # Interval in seconds for changing state
 
-# Game 1 - Grid Editor Positioning
-game1_origin = (MARGIN, MARGIN)
 
-# Game 2 - Serial Display Positioning
-game2_origin = (game1_origin[0] + GRID_SIZE * (SQUARE_SIZE + MARGIN) + MARGIN, MARGIN)
-
-# Define the draw functions for both games...
-
-previous_string = ""
+# Loop constants
+DATA_INTERVAL = 4  # Interval for processing data
+VIBRATION_DELAY = 1  # Interval in seconds for changing state
 
 
 def update_boolean_array(data_list, boolean_array, vibration_start_times, current_time):
@@ -64,10 +53,12 @@ def update_boolean_array(data_list, boolean_array, vibration_start_times, curren
             # Calculate dynamic interval based on value difference
             difference = max_value - data_list[i]
             dynamic_interval = (difference / value_range) * (
-                vibration_interval
+                VIBRATION_DELAY
             )  # Adjust the multiplier as needed
 
-            if current_time - vibration_start_times[i] >= dynamic_interval:
+            elapsed_time = current_time - vibration_start_times[i]
+
+            if elapsed_time >= dynamic_interval:
                 # Toggle the boolean_array value
                 boolean_array[i] = 0 if boolean_array[i] == 1 else 1
                 vibration_start_times[i] = current_time
@@ -146,10 +137,10 @@ def draw_grid2(screen, data):
             pygame.draw.rect(screen, color, rect)
 
 
-data_counter = 0
-
 try:
     running = True
+    data_counter = 0
+    previous_string = ""
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -159,7 +150,7 @@ try:
             incoming_data = ser.readline().decode("utf-8").rstrip()
             data_counter += 1  # Increment the counter for each data point
 
-            if data_counter == 2:
+            if data_counter == DATA_INTERVAL:
                 # Process this data point
                 # data_list = [
                 #     350,
@@ -187,13 +178,11 @@ try:
 
                 # Reset the counter after processing
                 data_counter = 0
+            # print_string(boolean_array, previous_string)
 
         screen.fill(BLACK)
-        # max_index = data_list.index(max(data_list))
-        # change_array(boolean_array, data_list[max_index], max_index)
 
         draw_grid2(screen, data_list)
-        # print_string(boolean_array, previous_string)
 
         draw_grid1(screen, boolean_array)
         pygame.display.flip()
