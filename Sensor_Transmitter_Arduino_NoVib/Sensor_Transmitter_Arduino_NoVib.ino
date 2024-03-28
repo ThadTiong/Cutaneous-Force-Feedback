@@ -41,7 +41,7 @@ void loop() {
   // Display readings in a grid
   for (int i = 0; i < numRows; i++) {
     for (int j = 0; j < numCols; j++) {
-      if (readings[i][j] > threshold) {
+      if (readings[i][j] > 50) {
         Serial.print(readings[i][j]);
       } else{
         Serial.print("0");
@@ -65,7 +65,7 @@ void sendData() {
 
   for (int i = 0; i < numRows; i++) {
     for (int j = 0; j < numCols; j++) {
-      if (readings[i][j] >= threshold) {
+      if (readings[i][j] >= 50) {
         if (i == 0 && j == 0) { cell_1 += 128; }
         if (i == 0 && j == 1) { cell_1 += 32; }
         if (i == 0 && j == 2) { cell_1 += 16; }

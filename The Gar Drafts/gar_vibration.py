@@ -27,7 +27,7 @@ WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
 # Serial Setup
-serial_port = "/dev/tty.usbmodem101"
+serial_port = "/dev/tty.usbmodem21201"
 baud_rate = 9600
 ser = serial.Serial(serial_port, baud_rate)
 

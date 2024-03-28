@@ -41,7 +41,7 @@ ser = serial.Serial(serial_port, baud_rate)
 boolean_array = [0] * 16
 data_list = [0] * (GRID_SIZE**2)
 vibration_start_times = [time.time()] * 16  # Initialize start times for vibration
-vibration_interval = 1  # Interval in seconds for changing state
+vibration_interval = 0.5  # Interval in seconds for changing state
 
 # Game 1 - Grid Editor Positioning
 game1_origin = (MARGIN, MARGIN)
@@ -64,7 +64,7 @@ def update_boolean_array(data_list, boolean_array, vibration_start_times, curren
             # Calculate dynamic interval based on value difference
             difference = max_value - data_list[i]
             dynamic_interval = (difference / value_range) * (
-                vibration_interval
+                vibration_interval * 2
             )  # Adjust the multiplier as needed
 
             if current_time - vibration_start_times[i] >= dynamic_interval:
@@ -146,8 +146,6 @@ def draw_grid2(screen, data):
             pygame.draw.rect(screen, color, rect)
 
 
-data_counter = 0
-
 try:
     running = True
     while running:
@@ -155,38 +153,16 @@ try:
             if event.type == pygame.QUIT:
                 running = False
 
+        current_time = time.time()
+
         if ser.in_waiting > 0:
-            incoming_data = ser.readline().decode("utf-8").rstrip()
-            data_counter += 1  # Increment the counter for each data point
-
-            if data_counter == 2:
-                # Process this data point
-                # data_list = [
-                #     350,
-                #     325,
-                #     300,
-                #     50,
-                #     325,
-                #     300,
-                #     50,
-                #     0,
-                #     300,
-                #     50,
-                #     0,
-                #     0,
-                #     50,
-                #     0,
-                #     0,
-                #     0,
-                # ]
-                data_list = [int(x) for x in incoming_data.split(",") if x.strip()]
-                boolean_array = [1 if x != 0 else 0 for x in data_list]
-                update_boolean_array(
-                    data_list, boolean_array, vibration_start_times, time.time()
-                )
-
-                # Reset the counter after processing
-                data_counter = 0
+            # incoming_data = ser.readline().decode("utf-8").rstrip()
+            # data_list = [int(x) for x in incoming_data.split(",") if x.strip()]
+            data_list = [350, 325, 300, 50, 325, 300, 50, 0, 300, 50, 0, 0, 50, 0, 0, 0]
+            boolean_array = [1 if x != 0 else 0 for x in data_list]
+            update_boolean_array(
+                data_list, boolean_array, vibration_start_times, current_time
+            )
 
         screen.fill(BLACK)
         # max_index = data_list.index(max(data_list))
@@ -198,7 +174,7 @@ try:
         draw_grid1(screen, boolean_array)
         pygame.display.flip()
         # rotate display
-        time.sleep(0.01)
+        time.sleep(0.1)
 
 except serial.SerialException as e:
     print(f"Error opening serial port: {e}")

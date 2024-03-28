@@ -19,7 +19,7 @@ grid_size = 4  # 4x4 grid
 square_size = window_size[0] // grid_size  # Size of squares
 
 # Serial setup
-serial_port = "/dev/tty.usbmodem21301"
+serial_port = "/dev/tty.usbmodem21201"
 baud_rate = 9600
 ser = serial.Serial(serial_port, baud_rate)
 print(f"Connected to {serial_port} at {baud_rate} baud.")
