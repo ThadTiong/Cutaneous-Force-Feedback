@@ -25,12 +25,6 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 
-# Serial Setup
-serial_port = "/dev/tty.usbmodem21301"
-serial_output_port = "/dev/tty.usbmodem21401"
-baud_rate = 115200
-ser = serial.Serial(serial_port, baud_rate)
-outputser = serial.Serial(serial_output_port, baud_rate)
 
 # Initial Data
 boolean_array = [0] * 16
@@ -39,61 +33,8 @@ vibration_start_times = [time.time()] * 16  # Initialize start times for vibrati
 
 
 # Loop constants
-DATA_INTERVAL = 5  # Interval for processing data
+DATA_INTERVAL = 3  # Interval for processing data
 VIBRATION_DELAY = 1  # Interval in seconds for changing state
-
-
-def update_boolean_array(data_list, boolean_array, vibration_start_times, current_time):
-    max_value = max(data_list)
-    # Ensure we don't divide by zero if all values in data_list are the same
-    value_range = max_value - min(data_list) if max_value != min(data_list) else 1
-
-    for i in range(len(boolean_array)):
-        if boolean_array[i] == 1:  # Only consider initially active (1) indices
-            # Calculate dynamic interval based on value difference
-            difference = max_value - data_list[i]
-            dynamic_interval = (difference / value_range) * (
-                VIBRATION_DELAY
-            )  # Adjust the multiplier as needed
-
-            elapsed_time = current_time - vibration_start_times[i]
-
-            if elapsed_time >= dynamic_interval:
-                # Toggle the boolean_array value
-                boolean_array[i] = 1 if boolean_array[i] == 0 else 1
-                vibration_start_times[i] = current_time
-            else:
-                boolean_array[i] = 0
-
-        # Ensure the index with the current max value is always 1
-        if data_list[i] == max_value & max_value != 0:
-            boolean_array[i] = 1
-
-
-def print_string(boolean_array, previous_string):
-    first = 0
-    second = 0
-
-    values = [1, 8, 1, 8, 2, 16, 2, 16, 4, 32, 4, 32, 64, 128, 64, 128]
-
-    for i in range(len(boolean_array)):
-        if i % 4 in {0, 1}:
-            if boolean_array[i]:
-                first += values[i]
-        elif i % 4 in {2, 3}:
-            if boolean_array[i]:
-                second += values[i]
-    full_string = f"<{first:03}{second:03}>"
-
-    # if full_string same as previous string:
-    if full_string != previous_string:
-
-        # Write full_string to output serial port
-        print(full_string)
-        outputser.write(
-            full_string.encode("utf-8")
-        )  # Ensure to encode the string before sending
-        previous_string = full_string
 
 
 def draw_grid1(screen, array):
@@ -139,10 +80,49 @@ def draw_grid2(screen, data):
             pygame.draw.rect(screen, color, rect)
 
 
+def update_boolean_array(data_list, boolean_array, vibration_start_times, current_time):
+    max_value = max(data_list)
+
+    value_range = max_value - min(data_list) if max_value != min(data_list) else 1
+    print("Current Time: ", current_time)
+    print("Boolean Array: ", boolean_array)
+    print("Max value: ", max_value)
+    print("Value Range: ", value_range)
+    print("Virtual Start Times: ", vibration_start_times)
+
+    for i in range(len(boolean_array)):
+        if boolean_array[i] == 1:  # Only consider initially active (1) indices
+            # Calculate dynamic interval based on value difference
+            difference = max_value - data_list[i]
+            dynamic_interval = (difference / value_range) * (
+                VIBRATION_DELAY
+            )  # Adjust the multiplier as needed
+
+            elapsed_time = current_time - vibration_start_times[i]
+
+            print("Data list[i]: ", data_list[i])
+            print("Difference: ", difference)
+            print("Dynamic Interval: ", dynamic_interval)
+            print("Elapsed Time: ", elapsed_time)
+
+            if elapsed_time >= dynamic_interval:
+                # Toggle the boolean_array value
+                boolean_array[i] = 1 if boolean_array[i] == 0 else 1
+                vibration_start_times[i] = current_time
+
+            else:
+                boolean_array[i] = 0
+
+        # Ensure the index with the current max value is always 1
+        if data_list[i] == max_value & max_value != 0:
+            boolean_array[i] = 1
+    print("Updated Boolean Array: ", boolean_array)
+    print("Updated Virtual Start Times: ", vibration_start_times)
+
+
 try:
     counter = 0
     running = True
-    previous_string = ""
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -150,22 +130,16 @@ try:
 
         current_time = time.time()
 
-        if ser.in_waiting > 0:
-            incoming_data = ser.readline().decode("utf-8").rstrip()
-            data_list = [int(x) for x in incoming_data.split(",") if x.strip()]
         counter += 1
         if counter == DATA_INTERVAL:
-            # data_list = [350, 325, 300, 50, 325, 300, 50, 0, 300, 50, 0, 0, 50, 0, 0, 0]
+            data_list = [350, 325, 300, 50, 325, 300, 50, 0, 300, 50, 0, 0, 50, 0, 0, 0]
             boolean_array = [1 if x != 0 else 0 for x in data_list]
             update_boolean_array(
                 data_list, boolean_array, vibration_start_times, current_time
             )
-            print_string(boolean_array, previous_string)
             counter = 0
 
         screen.fill(BLACK)
-        # max_index = data_list.index(max(data_list))
-        # change_array(boolean_array, data_list[max_index], max_index)
 
         draw_grid2(screen, data_list)
 
